@@ -115,11 +115,11 @@ class BpxClient:
             return None
     
     # public 
-    def Assets():
+    def Assets(self):
         return requests.get(url=f'{self.url}api/v1/assets').json()
 
 
-    def Markets():
+    def Markets(self):
         return requests.get(url=f'{self.url}api/v1/markets').json()
 
 
@@ -132,17 +132,25 @@ class BpxClient:
 
 
     # System
-    def Status():
+    def Status(self):
         return requests.get(url=f'{self.url}api/v1/status').json()
 
 
-    def Ping():
+    def Ping(self):
         return requests.get(url=f'{self.url}api/v1/ping').text
 
 
-    def Time():
+    def Time(self):
         return requests.get(url=f'{self.url}api/v1/time').text
-
+    
+    # volume (not ready)
+    def Volume(self):
+        session = requests.Session()
+        session.get(url=f'{self.url}api/v1/capital', proxies=self.proxies,
+                            headers=self.sign('balanceQuery', {})).json()
+        volume = session.get(url=f'{self.url}wapi/v1/statistics/user/volume/quote/USDC?interval=month',
+                             proxies=self.proxies, headers=self.sign('balanceQuery', {}))
+        return volume
 
 
 if __name__ == '__main__':
@@ -151,13 +159,14 @@ if __name__ == '__main__':
     API_KEY = os.getenv("API_KEY")
     encoded_private_key = os.getenv("API_SECRET")
     client = BpxClient(API_KEY, encoded_private_key)
-    balances = client.balances()
-    RENDER_balances = float(balances['RENDER']['available']) + float(balances['RENDER']['locked'])
-    USDC_balances = float(balances['USDC']['available']) + float(balances['USDC']['locked'])
-    print(f'RENDER: {RENDER_balances}')
-    print(f'USDC: {USDC_balances}')
-    RENDER_price = float(client.Ticker(SYMBOL)['lastPrice'])
-    print(f'RENDER price: {RENDER_price}')
-    # The total value of the USDC and RENDER assets
-    total_value = USDC_balances + RENDER_balances * RENDER_price
-    print(f'Total value: {total_value}')
+    print(client.Volume())
+    # balances = client.balances()
+    # RENDER_balances = float(balances['RENDER']['available']) + float(balances['RENDER']['locked'])
+    # USDC_balances = float(balances['USDC']['available']) + float(balances['USDC']['locked'])
+    # print(f'RENDER: {RENDER_balances}')
+    # print(f'USDC: {USDC_balances}')
+    # RENDER_price = float(client.Ticker(SYMBOL)['lastPrice'])
+    # print(f'RENDER price: {RENDER_price}')
+    # # The total value of the USDC and RENDER assets
+    # total_value = USDC_balances + RENDER_balances * RENDER_price
+    # print(f'Total value: {total_value}')
